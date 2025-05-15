@@ -1,6 +1,7 @@
 package ca.corbett.musicplayer.extensions.nowplaying;
 
 import ca.corbett.ems.client.channel.Subscriber;
+import ca.corbett.extensions.AppExtension;
 import ca.corbett.extensions.AppExtensionInfo;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.BooleanProperty;
@@ -17,6 +18,8 @@ import ca.corbett.musicplayer.ui.AudioPanelListener;
 import ca.corbett.musicplayer.ui.UIReloadable;
 import ca.corbett.musicplayer.ui.VisualizationTrackInfo;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -24,7 +27,7 @@ import java.util.logging.Logger;
 public class NowPlayingExtension extends MusicPlayerExtension implements UIReloadable, AudioPanelListener {
     Logger log = Logger.getLogger(NowPlayingExtension.class.getName());
 
-    private final AppExtensionInfo info;
+    private final AppExtensionInfo extInfo;
 
     private String emsHost = "localhost";
     private int emsPort = 1975;
@@ -39,21 +42,16 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
     private Subscriber subscriber;
 
     public NowPlayingExtension() {
-        info = new AppExtensionInfo.Builder("Now Playing")
-                .setVersion("1.0")
-                .setAuthor("Steve Corbett")
-                .setTargetAppName(Version.NAME)
-                .setTargetAppVersion(Version.VERSION)
-                .setShortDescription("Broadcasts currently playing track info to EMS")
-                .setLongDescription("Broadcasts information about the currently playing track to a configurable channel on a configurable EMS server.")
-                .setReleaseNotes("Initial version")
-                .build();
+        extInfo = AppExtensionInfo.fromExtensionJar(getClass(), "/ca/corbett/musicplayer/extensions/nowplaying/extInfo.json");
+        if (extInfo == null) {
+            throw new RuntimeException("NowPlayingExtension: can't parse extInfo.json from jar resources!");
+        }
         subscriber = null;
     }
 
     @Override
     public AppExtensionInfo getInfo() {
-        return info;
+        return extInfo;
     }
 
     @Override
