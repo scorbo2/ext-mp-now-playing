@@ -18,7 +18,7 @@ mvn package
 You can then copy the extension jar file to wherever you keep your musicplayer extensions:
 
 ```shell
-cp target/ext-mp-now-playing-1.0-SNAPSHOT-jar-with-dependencies.jar ~/.MusicPlayer/extensions
+cp target/ext-mp-now-playing-1.0-jar-with-dependencies.jar ~/.MusicPlayer/extensions
 ```
 
 Then restart musicplayer and you should find the extension settings in the properties dialog:
