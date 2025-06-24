@@ -1,9 +1,9 @@
 {
   "name": "Now Playing",
   "author": "steve@corbett.ca",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "targetAppName": "MusicPlayer",
-  "targetAppVersion": "2.5",
+  "targetAppVersion": "2.6",
   "shortDescription": "Broadcasts currently playing track info to EMS",
   "longDescription": "Broadcasts information about the currently playing track to a configurable channel on a configurable EMS server.",
   "releaseNotes": "Initial version"

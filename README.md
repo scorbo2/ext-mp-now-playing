@@ -18,7 +18,7 @@ mvn package
 You can then copy the extension jar file to wherever you keep your musicplayer extensions:
 
 ```shell
-cp target/ext-mp-now-playing-2.5.0-jar-with-dependencies.jar ~/.MusicPlayer/extensions
+cp target/ext-mp-now-playing-2.6.0-jar-with-dependencies.jar ~/.MusicPlayer/extensions
 ```
 
 Then restart musicplayer and you should find the extension settings in the properties dialog:
@@ -39,7 +39,7 @@ may have on your local network.
 
 ### Requirements
 
-MusicPlayer 2.5 or higher.
+MusicPlayer 2.6 or higher.
 EMS 1.1 or higher.
 
 ### License
