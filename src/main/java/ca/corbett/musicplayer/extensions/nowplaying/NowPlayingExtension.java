@@ -1,7 +1,6 @@
 package ca.corbett.musicplayer.extensions.nowplaying;
 
 import ca.corbett.ems.client.channel.Subscriber;
-import ca.corbett.extensions.AppExtension;
 import ca.corbett.extensions.AppExtensionInfo;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.BooleanProperty;
@@ -18,8 +17,6 @@ import ca.corbett.musicplayer.ui.AudioPanelListener;
 import ca.corbett.musicplayer.ui.UIReloadable;
 import ca.corbett.musicplayer.ui.VisualizationTrackInfo;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -55,13 +52,13 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
     }
 
     @Override
-    public List<AbstractProperty> getConfigProperties() {
+    protected List<AbstractProperty> createConfigProperties() {
         List<AbstractProperty> list = new ArrayList<>();
 
         list.add(new TextProperty("Now Playing.EMS Server.hostname", "EMS Host:", emsHost, 15, 1));
         list.add(new IntegerProperty("Now Playing.EMS Server.port", "EMS Port:", emsPort, 1025, 65534, 1));
         TextProperty channelProp = new TextProperty("Now Playing.EMS Server.channel", "Channel:", emsChannel, 15, 1);
-        channelProp.setReadOnly(true);
+        channelProp.setInitiallyEditable(false);
         list.add(channelProp);
         list.add(new TextProperty("Now Playing.EMS Server.playerName", "Identify as:", playerName, 15, 1));
 
