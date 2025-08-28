@@ -6,7 +6,7 @@ import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.BooleanProperty;
 import ca.corbett.extras.properties.IntegerProperty;
 import ca.corbett.extras.properties.PropertiesManager;
-import ca.corbett.extras.properties.TextProperty;
+import ca.corbett.extras.properties.ShortTextProperty;
 import ca.corbett.musicplayer.AppConfig;
 import ca.corbett.musicplayer.Version;
 import ca.corbett.musicplayer.actions.ReloadUIAction;
@@ -55,12 +55,12 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
     protected List<AbstractProperty> createConfigProperties() {
         List<AbstractProperty> list = new ArrayList<>();
 
-        list.add(new TextProperty("Now Playing.EMS Server.hostname", "EMS Host:", emsHost, 15, 1));
+        list.add(new ShortTextProperty("Now Playing.EMS Server.hostname", "EMS Host:", emsHost, 15));
         list.add(new IntegerProperty("Now Playing.EMS Server.port", "EMS Port:", emsPort, 1025, 65534, 1));
-        TextProperty channelProp = new TextProperty("Now Playing.EMS Server.channel", "Channel:", emsChannel, 15, 1);
+        ShortTextProperty channelProp = new ShortTextProperty("Now Playing.EMS Server.channel", "Channel:", emsChannel, 15);
         channelProp.setInitiallyEditable(false);
         list.add(channelProp);
-        list.add(new TextProperty("Now Playing.EMS Server.playerName", "Identify as:", playerName, 15, 1));
+        list.add(new ShortTextProperty("Now Playing.EMS Server.playerName", "Identify as:", playerName, 15));
 
         list.add(new BooleanProperty("Now Playing.Broadcast.startup", "Broadcast on app startup", includeStartup));
         list.add(new BooleanProperty("Now Playing.Broadcast.trackStart", "Broadcast track start", includeTrackStart));
@@ -109,9 +109,9 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
     public void reloadUI() {
         PropertiesManager propsManager = AppConfig.getInstance().getPropertiesManager();
 
-        String newHost = ((TextProperty)propsManager.getProperty("Now Playing.EMS Server.hostname")).getValue();
+        String newHost = ((ShortTextProperty)propsManager.getProperty("Now Playing.EMS Server.hostname")).getValue();
         int newPort = ((IntegerProperty)propsManager.getProperty("Now Playing.EMS Server.port")).getValue();
-        playerName = ((TextProperty)propsManager.getProperty("Now Playing.EMS Server.playerName")).getValue();
+        playerName = ((ShortTextProperty)propsManager.getProperty("Now Playing.EMS Server.playerName")).getValue();
         includeStartup = ((BooleanProperty)propsManager.getProperty("Now Playing.Broadcast.startup")).getValue();
         includeShutdown = ((BooleanProperty)propsManager.getProperty("Now Playing.Broadcast.shutdown")).getValue();
         includeTrackStart = ((BooleanProperty)propsManager.getProperty("Now Playing.Broadcast.trackStart")).getValue();
