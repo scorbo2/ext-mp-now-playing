@@ -22,13 +22,13 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class NowPlayingExtension extends MusicPlayerExtension implements UIReloadable, AudioPanelListener {
-    Logger log = Logger.getLogger(NowPlayingExtension.class.getName());
+    private static final Logger log = Logger.getLogger(NowPlayingExtension.class.getName());
 
     private final AppExtensionInfo extInfo;
 
     private String emsHost = "localhost";
     private int emsPort = 1975;
-    private final String emsChannel = "NOW_PLAYING";
+    private String emsChannel = "NOW_PLAYING"; // todo either make me configurable or make me final, pick one
     private String playerName = Version.NAME;
 
     private boolean includeStartup = true;
@@ -53,6 +53,17 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
 
     @Override
     protected List<AbstractProperty> createConfigProperties() {
+        // Can remove this redundant property setting after swing-extras #116 is addressed
+        emsHost = "localhost";
+        emsPort = 1975;
+        emsChannel = "NOW_PLAYING";
+        playerName = Version.NAME;
+
+        includeStartup = true;
+        includeTrackStart = true;
+        includeIdle = false;
+        includeShutdown = true;
+
         List<AbstractProperty> list = new ArrayList<>();
 
         list.add(new ShortTextProperty("Now Playing.EMS Server.hostname", "EMS Host:", emsHost, 15));
