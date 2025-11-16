@@ -52,6 +52,11 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
     }
 
     @Override
+    public void loadJarResources() {
+
+    }
+
+    @Override
     protected List<AbstractProperty> createConfigProperties() {
         // Can remove this redundant property setting after swing-extras #116 is addressed
         emsHost = "localhost";
