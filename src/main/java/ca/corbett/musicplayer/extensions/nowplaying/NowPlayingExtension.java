@@ -21,14 +21,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * This is an extension for the MusicPlayer application that will connect to an EMS server
+ * and broadcast the currently playing track title and artist to the NOW_PLAYING channel.
+ * <p>References:</p>
+ * <ul>
+ *     <li><A HREF="https://github.com/scorbo2/musicplayer">MusicPlayer</A>
+ *     <li><A HREF="https://github.com/scorbo2/ems">EMS</A>
+ * </ul>
+ *
+ * @author <a href="https://github.com/scorbo2">scorbo2</a>
+ */
 public class NowPlayingExtension extends MusicPlayerExtension implements UIReloadable, AudioPanelListener {
     private static final Logger log = Logger.getLogger(NowPlayingExtension.class.getName());
+
+    private static final String PROP_HOST = "Now Playing.EMS Server.hostname";
+    private static final String PROP_PORT = "Now Playing.EMS Server.port";
+    private static final String PROP_CHANNEL = "Now Playing.EMS Server.channel";
+    private static final String PROP_IDENTITY = "Now Playing.EMS Server.playerName";
+    private static final String PROP_STARTUP = "Now Playing.Broadcast.startup";
+    private static final String PROP_TRACK_START = "Now Playing.Broadcast.trackStart";
+    private static final String PROP_IDLE = "Now Playing.Broadcast.idle";
+    private static final String PROP_SHUTDOWN = "Now Playing.Broadcast.shutdown";
 
     private final AppExtensionInfo extInfo;
 
     private String emsHost = "localhost";
     private int emsPort = 1975;
-    private String emsChannel = "NOW_PLAYING"; // todo either make me configurable or make me final, pick one
+    private final String emsChannel = "NOW_PLAYING";
     private String playerName = Version.NAME;
 
     private boolean includeStartup = true;
@@ -39,7 +59,8 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
     private Subscriber subscriber;
 
     public NowPlayingExtension() {
-        extInfo = AppExtensionInfo.fromExtensionJar(getClass(), "/ca/corbett/musicplayer/extensions/nowplaying/extInfo.json");
+        extInfo = AppExtensionInfo.fromExtensionJar(getClass(),
+                                                    "/ca/corbett/musicplayer/extensions/nowplaying/extInfo.json");
         if (extInfo == null) {
             throw new RuntimeException("NowPlayingExtension: can't parse extInfo.json from jar resources!");
         }
@@ -58,12 +79,6 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
 
     @Override
     protected List<AbstractProperty> createConfigProperties() {
-        // Can remove this redundant property setting after swing-extras #116 is addressed
-        emsHost = "localhost";
-        emsPort = 1975;
-        emsChannel = "NOW_PLAYING";
-        playerName = Version.NAME;
-
         includeStartup = true;
         includeTrackStart = true;
         includeIdle = false;
@@ -71,17 +86,15 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
 
         List<AbstractProperty> list = new ArrayList<>();
 
-        list.add(new ShortTextProperty("Now Playing.EMS Server.hostname", "EMS Host:", emsHost, 15));
-        list.add(new IntegerProperty("Now Playing.EMS Server.port", "EMS Port:", emsPort, 1025, 65534, 1));
-        ShortTextProperty channelProp = new ShortTextProperty("Now Playing.EMS Server.channel", "Channel:", emsChannel, 15);
-        channelProp.setInitiallyEditable(false);
-        list.add(channelProp);
-        list.add(new ShortTextProperty("Now Playing.EMS Server.playerName", "Identify as:", playerName, 15));
+        list.add(new ShortTextProperty(PROP_HOST, "EMS Host:", emsHost, 15));
+        list.add(new IntegerProperty(PROP_PORT, "EMS Port:", emsPort, 1025, 65534, 1));
+        list.add(new ShortTextProperty(PROP_CHANNEL, "Channel:", emsChannel, 15).setInitiallyEditable(false));
+        list.add(new ShortTextProperty(PROP_IDENTITY, "Identify as:", playerName, 15));
 
-        list.add(new BooleanProperty("Now Playing.Broadcast.startup", "Broadcast on app startup", includeStartup));
-        list.add(new BooleanProperty("Now Playing.Broadcast.trackStart", "Broadcast track start", includeTrackStart));
-        list.add(new BooleanProperty("Now Playing.Broadcast.idle", "Broadcast when going idle", includeIdle));
-        list.add(new BooleanProperty("Now Playing.Broadcast.shutdown", "Broadcast on app startup", includeShutdown));
+        list.add(new BooleanProperty(PROP_STARTUP, "Broadcast on app startup", includeStartup));
+        list.add(new BooleanProperty(PROP_TRACK_START, "Broadcast track start", includeTrackStart));
+        list.add(new BooleanProperty(PROP_IDLE, "Broadcast when going idle", includeIdle));
+        list.add(new BooleanProperty(PROP_SHUTDOWN, "Broadcast on app startup", includeShutdown));
 
         return list;
     }
@@ -111,11 +124,12 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
             subscriber.disconnect();
         }
         subscriber = new Subscriber();
-        if (! subscriber.connect(emsHost, emsPort, emsChannel)) {
-            log.warning("Unable to connect to EMS host on "+emsHost+":"+emsPort);
+        if (!subscriber.connect(emsHost, emsPort, emsChannel)) {
+            log.warning("Unable to connect to EMS host on " + emsHost + ":" + emsPort);
             subscriber = null;
             return;
         }
+        log.info("NowPlaying: connected to EMS host on " + emsHost + ":" + emsPort);
         if (includeStartup) {
             subscriber.broadcast(emsChannel, playerName + " starting up!");
         }
@@ -125,15 +139,15 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
     public void reloadUI() {
         PropertiesManager propsManager = AppConfig.getInstance().getPropertiesManager();
 
-        String newHost = ((ShortTextProperty)propsManager.getProperty("Now Playing.EMS Server.hostname")).getValue();
-        int newPort = ((IntegerProperty)propsManager.getProperty("Now Playing.EMS Server.port")).getValue();
-        playerName = ((ShortTextProperty)propsManager.getProperty("Now Playing.EMS Server.playerName")).getValue();
-        includeStartup = ((BooleanProperty)propsManager.getProperty("Now Playing.Broadcast.startup")).getValue();
-        includeShutdown = ((BooleanProperty)propsManager.getProperty("Now Playing.Broadcast.shutdown")).getValue();
-        includeTrackStart = ((BooleanProperty)propsManager.getProperty("Now Playing.Broadcast.trackStart")).getValue();
-        includeIdle = ((BooleanProperty)propsManager.getProperty("Now Playing.Broadcast.idle")).getValue();
+        String newHost = ((ShortTextProperty)propsManager.getProperty(PROP_HOST)).getValue();
+        int newPort = ((IntegerProperty)propsManager.getProperty(PROP_PORT)).getValue();
+        playerName = ((ShortTextProperty)propsManager.getProperty(PROP_IDENTITY)).getValue();
+        includeStartup = ((BooleanProperty)propsManager.getProperty(PROP_STARTUP)).getValue();
+        includeShutdown = ((BooleanProperty)propsManager.getProperty(PROP_SHUTDOWN)).getValue();
+        includeTrackStart = ((BooleanProperty)propsManager.getProperty(PROP_TRACK_START)).getValue();
+        includeIdle = ((BooleanProperty)propsManager.getProperty(PROP_IDLE)).getValue();
 
-        if (! emsHost.equals(newHost) || emsPort != newPort || subscriber == null) {
+        if (!emsHost.equals(newHost) || emsPort != newPort || subscriber == null) {
             connect();
             emsHost = newHost;
             emsPort = newPort;
@@ -154,7 +168,7 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
             AudioData.Metadata meta = sourcePanel.getAudioData().getMetadata();
             String title = (meta.title == null || meta.title.isBlank()) ? "(untitled track)" : meta.title;
             String author = (meta.author == null || meta.author.isBlank()) ? "(unknown)" : meta.author;
-            subscriber.broadcast(emsChannel, "[" + playerName + "] now playing: \""+title+"\" by "+author);
+            subscriber.broadcast(emsChannel, "[" + playerName + "] now playing: \"" + title + "\" by " + author);
         }
     }
 
