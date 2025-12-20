@@ -35,7 +35,7 @@ You can clone this repo and build the extension jar with maven (Java 17 required
 ```shell
 git clone https://github.com/scorbo2/ext-mp-now-playing.git
 cd ext-mp-now-playing
-mvn package
+mvn package # NOTE! You must have MusicPlayer-3.1 in your local maven repository for this to work!
 
 # Copy the result to extensions directory:
 cp target/ext-mp-now-playing-3.1.0-jar-with-dependencies.jar ~/.MusicPlayer/extensions
