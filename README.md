@@ -24,7 +24,7 @@ extension manager dialog, pick "Now playing" on the "Installed" tab, and hit the
 ### Option 2: manual download and install
 
 You can also manually download the extension jar:
-[ext-mp-now-playing-3.0.0-jar-with-dependencies.jar](http://www.corbett.ca/apps/MusicPlayer/extensions/3.0/ext-mp-now-playing-3.0.0-jar-with-dependencies.jar)
+[ext-mp-now-playing-3.1.0-jar-with-dependencies.jar](http://www.corbett.ca/apps/MusicPlayer/extensions/3.1/ext-mp-now-playing-3.1.0-jar-with-dependencies.jar)
 
 Save it to your ~/.MusicPlayer/extensions directory and restart the application.
 
@@ -35,10 +35,10 @@ You can clone this repo and build the extension jar with maven (Java 17 required
 ```shell
 git clone https://github.com/scorbo2/ext-mp-now-playing.git
 cd ext-mp-now-playing
-mvn package
+mvn package # NOTE! You must have MusicPlayer-3.1 in your local maven repository for this to work!
 
 # Copy the result to extensions directory:
-cp target/ext-mp-now-playing-3.0.0-jar-with-dependencies.jar ~/.MusicPlayer/extensions
+cp target/ext-mp-now-playing-3.1.0-jar-with-dependencies.jar ~/.MusicPlayer/extensions
 ```
 
 ## Okay, it's installed, now how do I use it?
@@ -61,7 +61,7 @@ may have on your local network.
 
 ## Requirements
 
-MusicPlayer 3.0 or higher.
+MusicPlayer 3.1 or higher.
 EMS 1.1 or higher.
 
 ## License
