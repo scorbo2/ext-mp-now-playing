@@ -29,6 +29,7 @@ import java.net.ConnectException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Filter;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 
@@ -235,6 +236,9 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
         Logger rootLogger = Logger.getLogger("");
         for (Handler handler : rootLogger.getHandlers()) {
             handler.setFilter(record -> {
+                // If this handler already has a filter, we want to work together with it:
+                final Filter existingFilter = handler.getFilter();
+
                 // Only intercept records from EMSClient specifically
                 if (!EMSClient.class.getName().equals(record.getLoggerName())) {
                     return true; // not our concern, let it through
@@ -253,8 +257,8 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
                     return false; // suppress
                 }
 
-                // Everything else is a legit log message and should be logged as normal:
-                return true;
+                // Otherwise, let it through (including any other exceptions from EMSClient):
+                return existingFilter == null ? true : existingFilter.isLoggable(record);
             });
         }
     }
