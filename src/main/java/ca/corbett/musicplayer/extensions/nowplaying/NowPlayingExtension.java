@@ -1,5 +1,6 @@
 package ca.corbett.musicplayer.extensions.nowplaying;
 
+import ca.corbett.ems.client.EMSClient;
 import ca.corbett.ems.client.channel.Subscriber;
 import ca.corbett.extensions.AppExtensionInfo;
 import ca.corbett.extras.properties.AbstractProperty;
@@ -24,9 +25,12 @@ import javax.swing.JSpinner;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 import java.awt.Dimension;
+import java.net.ConnectException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Filter;
+import java.util.logging.Handler;
 import java.util.logging.Logger;
 
 /**
@@ -73,6 +77,8 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
             throw new RuntimeException("NowPlayingExtension: can't parse extInfo.json from jar resources!");
         }
         subscriber = null;
+
+        suppressEMSConnectExceptions();
     }
 
     @Override
@@ -133,7 +139,8 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
         }
         subscriber = new Subscriber();
         if (!subscriber.connect(emsHost, emsPort, emsChannel)) {
-            log.warning("Unable to connect to EMS host on " + emsHost + ":" + emsPort);
+            log.warning("Unable to connect to EMS host on " + emsHost + ":" + emsPort
+                            + " - NowPlaying feature will be disabled.");
             subscriber = null;
             return;
         }
@@ -156,9 +163,9 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
         includeIdle = ((BooleanProperty)propsManager.getProperty(PROP_IDLE)).getValue();
 
         if (!emsHost.equals(newHost) || emsPort != newPort || subscriber == null) {
-            connect();
             emsHost = newHost;
             emsPort = newPort;
+            connect();
         }
     }
 
@@ -214,5 +221,67 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
         });
 
         return prop;
+    }
+
+    /**
+     * The EMS client library will catch and log a ConnectException if it's unable to connect
+     * to a given EMS server. This is poor design - it should propagate that exception to us, the caller,
+     * so that we can decide how to handle it. Specifically, I don't want to see scary stack traces
+     * in our application log just because the EMS server is down. So, we will try to selectively
+     * suppress ConnectExceptions, while still allowing all other exceptions to be logged as normal.
+     */
+    private void suppressEMSConnectExceptions() {
+        // Install the filter on the root logger's handlers, since that's where
+        // records ultimately land regardless of which child logger emitted them
+        Logger rootLogger = Logger.getLogger("");
+        for (Handler handler : rootLogger.getHandlers()) {
+            handler.setFilter(record -> {
+                // If this handler already has a filter, we want to work together with it:
+                final Filter existingFilter = handler.getFilter();
+
+                // Only intercept records from EMSClient specifically
+                if (!EMSClient.class.getName().equals(record.getLoggerName())) {
+                    return true; // not our concern, let it through
+                }
+
+                // Only suppress ConnectException - we want other exceptions to be logged as normal:
+                Throwable thrown = record.getThrown();
+                if (thrown != null && isCausedBy(thrown, ConnectException.class)) {
+                    return false; // suppress
+                }
+
+                // As a safe fallback, in case the Exception wasn't attached, look for the specific exception
+                // message from an EMS connection failure, which should be unique enough to avoid false positives:
+                String message = record.getMessage();
+                if (message != null && message.contains("Unable to connect to EMS server")) {
+                    return false; // suppress
+                }
+
+                // Otherwise, let it through (including any other exceptions from EMSClient):
+                return existingFilter == null ? true : existingFilter.isLoggable(record);
+            });
+        }
+    }
+
+    /**
+     * Helper method to check if the given Throwable or any of its causes is an instance of the targetType.
+     *
+     * @param thrown     The Throwable to check.
+     * @param targetType The type of Throwable to look for in the cause chain.
+     * @return true if the thrown Throwable or any of its causes is an instance of targetType, false otherwise.
+     */
+    private static boolean isCausedBy(Throwable thrown, Class<? extends Throwable> targetType) {
+        Throwable current = thrown;
+        while (current != null) {
+            if (targetType.isInstance(current)) {
+                return true;
+            }
+            // Avoid infinite loops from circular causes (rare but possible)
+            if (current.getCause() == current) {
+                break;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }
