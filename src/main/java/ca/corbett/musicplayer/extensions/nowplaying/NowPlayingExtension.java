@@ -4,9 +4,11 @@ import ca.corbett.ems.client.channel.Subscriber;
 import ca.corbett.extensions.AppExtensionInfo;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.BooleanProperty;
+import ca.corbett.extras.properties.FormFieldGenerationListener;
 import ca.corbett.extras.properties.IntegerProperty;
 import ca.corbett.extras.properties.PropertiesManager;
 import ca.corbett.extras.properties.ShortTextProperty;
+import ca.corbett.forms.fields.FormField;
 import ca.corbett.musicplayer.AppConfig;
 import ca.corbett.musicplayer.Version;
 import ca.corbett.musicplayer.actions.ReloadUIAction;
@@ -17,6 +19,12 @@ import ca.corbett.musicplayer.ui.AudioPanelListener;
 import ca.corbett.musicplayer.ui.UIReloadable;
 import ca.corbett.musicplayer.ui.VisualizationTrackInfo;
 
+import javax.swing.JFormattedTextField;
+import javax.swing.JSpinner;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
+import java.awt.Dimension;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -87,7 +95,7 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
         List<AbstractProperty> list = new ArrayList<>();
 
         list.add(new ShortTextProperty(PROP_HOST, "EMS Host:", emsHost, 15));
-        list.add(new IntegerProperty(PROP_PORT, "EMS Port:", emsPort, 1025, 65534, 1));
+        list.add(buildPortProperty());
         list.add(new ShortTextProperty(PROP_CHANNEL, "Channel:", emsChannel, 15).setInitiallyEditable(false));
         list.add(new ShortTextProperty(PROP_IDENTITY, "Identify as:", playerName, 15));
 
@@ -176,5 +184,35 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
     @Override
     public void audioLoaded(AudioPanel sourcePanel, VisualizationTrackInfo trackInfo) {
         // ignored
+    }
+
+    /**
+     * By default, JSpinner uses a formatted text field to display numbers. In my locale, that means
+     * using comma separators in long numbers, like "1,975" instead of "1975". This is mildly annoying,
+     * because we're dealing with port numbers, which (in my opinion anyway) look better without commas.
+     * So, we will access the underlying JSpinner and tweak it a little.
+     */
+    private AbstractProperty buildPortProperty() {
+        IntegerProperty prop = new IntegerProperty(PROP_PORT, "EMS Port:", emsPort, 1025, 65534, 1);
+        prop.addFormFieldGenerationListener(new FormFieldGenerationListener() {
+            @Override
+            public void formFieldGenerated(AbstractProperty property, FormField formField) {
+                if (formField.getFieldComponent() instanceof JSpinner spinner) {
+                    // Access the spinner's editor, when it is the default editor implementation,
+                    // and set it to use a NumberFormat that doesn't use grouping (i.e. no commas):
+                    if (spinner.getEditor() instanceof JSpinner.DefaultEditor editor) {
+                        JFormattedTextField tf = editor.getTextField();
+                        NumberFormatter formatter = new NumberFormatter(new DecimalFormat("#"));
+                        formatter.setValueClass(Integer.class);
+                        tf.setFormatterFactory(new DefaultFormatterFactory(formatter));
+                    }
+
+                    // Also adjust the size a bit, since the default never seems to be wide enough:
+                    spinner.setPreferredSize(new Dimension(80, 22));
+                }
+            }
+        });
+
+        return prop;
     }
 }
