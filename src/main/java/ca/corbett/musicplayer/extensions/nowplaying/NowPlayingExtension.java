@@ -10,7 +10,7 @@ import ca.corbett.extras.properties.ShortTextProperty;
 import ca.corbett.musicplayer.AppConfig;
 import ca.corbett.musicplayer.Version;
 import ca.corbett.musicplayer.actions.ReloadUIAction;
-import ca.corbett.musicplayer.audio.AudioData;
+import ca.corbett.musicplayer.audio.AudioMetadata;
 import ca.corbett.musicplayer.extensions.MusicPlayerExtension;
 import ca.corbett.musicplayer.ui.AudioPanel;
 import ca.corbett.musicplayer.ui.AudioPanelListener;
@@ -165,9 +165,10 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
         }
 
         else if (state == AudioPanel.PanelState.PLAYING && includeTrackStart) {
-            AudioData.Metadata meta = sourcePanel.getAudioData().getMetadata();
-            String title = (meta.title == null || meta.title.isBlank()) ? "(untitled track)" : meta.title;
-            String author = (meta.author == null || meta.author.isBlank()) ? "(unknown)" : meta.author;
+            AudioMetadata meta = sourcePanel.getAudioData().getMetadata();
+            String title = (meta.getTitle() == null || meta.getTitle()
+                                                           .isBlank()) ? "(untitled track)" : meta.getTitle();
+            String author = (meta.getAuthor() == null || meta.getAuthor().isBlank()) ? "(unknown)" : meta.getAuthor();
             subscriber.broadcast(emsChannel, "[" + playerName + "] now playing: \"" + title + "\" by " + author);
         }
     }
