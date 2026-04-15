@@ -198,12 +198,14 @@ public class NowPlayingExtension extends MusicPlayerExtension implements UIReloa
             @Override
             public void formFieldGenerated(AbstractProperty property, FormField formField) {
                 if (formField.getFieldComponent() instanceof JSpinner spinner) {
-                    // Access the spinner's editor, which is a JFormattedTextField,
+                    // Access the spinner's editor, when it is the default editor implementation,
                     // and set it to use a NumberFormat that doesn't use grouping (i.e. no commas):
-                    JFormattedTextField tf = ((JSpinner.DefaultEditor)spinner.getEditor()).getTextField();
-                    NumberFormatter formatter = new NumberFormatter(new DecimalFormat("#"));
-                    formatter.setValueClass(Integer.class);
-                    tf.setFormatterFactory(new DefaultFormatterFactory(formatter));
+                    if (spinner.getEditor() instanceof JSpinner.DefaultEditor editor) {
+                        JFormattedTextField tf = editor.getTextField();
+                        NumberFormatter formatter = new NumberFormatter(new DecimalFormat("#"));
+                        formatter.setValueClass(Integer.class);
+                        tf.setFormatterFactory(new DefaultFormatterFactory(formatter));
+                    }
 
                     // Also adjust the size a bit, since the default never seems to be wide enough:
                     spinner.setPreferredSize(new Dimension(80, 22));
